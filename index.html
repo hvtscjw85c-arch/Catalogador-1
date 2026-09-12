@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050c18">
+<title>Football Studio Catalogador</title>
+<style>
+*{box-sizing:border-box}
+:root{--bg:#050c18;--panel:#071321;--panel2:#0b1727;--line:#1b3955;--text:#f5f7fb;--muted:#8da3bb;--red:#ff1d2e;--blue:#087dff;--green:#00d95f}
+body{margin:0;background:radial-gradient(circle at 50% 0,#10233a 0,#050c18 38%,#020711 100%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+.app{max-width:1100px;margin:auto;padding:14px 16px 30px}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.menu,.gear{font-size:30px;width:42px;text-align:center;color:#dce7f4}
+.logo{flex:1;text-align:center}
+.logoMain{font-size:34px;font-weight:900;letter-spacing:1px;font-style:italic;line-height:1}
+.logoMain span{color:#ff1628}.logoSub{font-size:27px;font-weight:900;letter-spacing:2px;line-height:1}
+.catalog{font-size:14px;letter-spacing:7px;color:#dbe5ef;margin-top:7px}
+.buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin:18px 0}
+.result{height:124px;border:2px solid;border-radius:22px;color:#fff;font-size:25px;font-weight:900;cursor:pointer;box-shadow:0 8px 25px #0007}
+.result:active{transform:scale(.985)}
+.local{background:linear-gradient(#ff1828,#d90818);border-color:#ff3643}
+.visitante{background:linear-gradient(#1384ff,#0759d8);border-color:#148dff}
+.empate{background:linear-gradient(#09c95a,#079b43);border-color:#00ef69}
+.icon{display:block;font-size:37px;margin-bottom:6px}
+.panel{background:linear-gradient(145deg,#091727,#07111f);border:1px solid #1a354f;border-radius:20px;padding:14px;margin:14px 0;box-shadow:0 8px 30px #0004}
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stats4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.card{background:#07111f;border:1px solid #142d45;border-radius:15px;text-align:center;padding:12px 6px}
+.num{font-size:30px;font-weight:900}.small{font-size:13px;color:#a3b4c8;margin-top:4px}
+.red{color:var(--red)}.blue{color:var(--blue)}.green{color:var(--green)}
+.titleRow{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.title{font-size:21px;font-weight:900}
+.clearSmall{background:#0a1727;color:#9db1c7;border:1px solid #2a4a66;border-radius:10px;padding:9px 13px;font-weight:700}
+.historyBox{overflow:hidden}
+.history{display:grid;grid-template-columns:repeat(20,1fr);gap:7px;padding:5px}
+.ball{width:100%;aspect-ratio:1;border-radius:50%;min-width:0;box-shadow:inset 0 0 0 1px #ffffff33,0 1px 5px #0008}
+.bh{background:var(--red)}.ba{background:var(--blue)}.bd{background:var(--green)}
+.historyInfo{display:flex;justify-content:space-between;color:#91a8c0;font-size:15px;margin-top:10px;padding:0 7px}
+.actions{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.action{background:#0b1a2b;color:#dce8f5;border:1px solid #2a5579;border-radius:15px;padding:14px 8px;font-size:16px;font-weight:800}
+.action.export{color:#1b96ff;border-color:#087dff}.action.danger{color:#ff4350;border-color:#ff3341}
+.bottom{display:grid;grid-template-columns:1.25fr .9fr;gap:14px}
+.list{display:grid;gap:5px}.row{display:flex;align-items:center;gap:13px;padding:8px 11px;background:#071523;border-bottom:1px solid #10283d;color:#dce6f0}
+.dot{width:20px;height:20px;border-radius:50%}.pct{margin-left:auto;font-weight:800}
+.footer{display:flex;justify-content:space-between;color:#6f879f;font-size:13px;padding:14px 5px}
+@media(max-width:650px){
+ .app{padding:10px 10px 25px}.header{gap:4px}.menu,.gear{font-size:25px;width:32px}
+ .logoMain{font-size:25px}.logoSub{font-size:21px}.catalog{font-size:10px;letter-spacing:5px}
+ .buttons{gap:8px;margin:14px 0}.result{height:116px;font-size:20px;border-radius:18px}.icon{font-size:31px}
+ .panel{border-radius:18px;padding:11px;margin:10px 0}
+ .stats3{gap:7px}.stats4{grid-template-columns:repeat(3,1fr);gap:7px}
+ .card{padding:10px 3px}.num{font-size:24px}.small{font-size:11px}
+ .history{grid-template-columns:repeat(20,1fr);gap:4px;padding:3px}
+ .title{font-size:17px}.clearSmall{font-size:11px;padding:7px 9px}
+ .historyInfo{font-size:12px}.actions{grid-template-columns:repeat(4,1fr);gap:7px}.action{font-size:12px;padding:12px 3px}
+ .bottom{grid-template-columns:1fr}.footer{font-size:10px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="header">
+ <div class="menu">☰</div>
+ <div class="logo">
+  <div class="logoMain"><span>FOOTBALL</span></div>
+  <div class="logoSub">STUDIO</div>
+  <div class="catalog">CATALOGADOR</div>
+ </div>
+ <div class="gear">⚙️</div>
+</header>
+
+<div class="buttons">
+ <button class="result local" onclick="add('L')"><span class="icon">⚽</span>LOCAL</button>
+ <button class="result visitante" onclick="add('V')"><span class="icon">⚽</span>VISITANTE</button>
+ <button class="result empate" onclick="add('E')"><span class="icon">🤝</span>EMPATE</button>
+</div>
+
+<section class="panel">
+ <div class="stats3">
+  <div class="card"><div class="num" id="total">0</div><div class="small">TOTAL</div></div>
+  <div class="card"><div class="num red" id="localCount">0</div><div class="small red">LOCAL</div><div id="localPct">0.0%</div></div>
+  <div class="card"><div class="num blue" id="visitCount">0</div><div class="small blue">VISITANTE</div><div id="visitPct">0.0%</div></div>
+ </div>
+ <div class="stats3" style="margin-top:8px">
+  <div class="card"><div class="num green" id="drawCount">0</div><div class="small green">EMPATE</div><div id="drawPct">0.0%</div></div>
+  <div class="card"><div class="num" id="streak">-</div><div class="small">RACHA ACTUAL</div></div>
+  <div class="card"><div class="num" id="last">-</div><div class="small">ÚLTIMO RESULTADO</div></div>
+ </div>
+</section>
+
+<section class="panel">
+ <div class="stats4">
+  <div class="card"><div class="num red" id="waitL">0</div><div class="small red">ESPERA LOCAL</div></div>
+  <div class="card"><div class="num blue" id="waitV">0</div><div class="small blue">ESPERA VISITANTE</div></div>
+  <div class="card"><div class="num green" id="waitE">0</div><div class="small green">ESPERA EMPATE</div></div>
+  <div class="card"><div class="num" id="alternation">-</div><div class="small">ALTERNANCIA</div></div>
+ </div>
+</section>
+
+<section class="panel historyBox">
+ <div class="titleRow">
+  <div class="title">◷ HISTORIAL DE RESULTADOS</div>
+  <button class="clearSmall" onclick="clearAll()">♙ LIMPIAR TODO</button>
+ </div>
+ <div id="history" class="history"></div>
+ <div class="historyInfo"><span>Más reciente ← &nbsp; | &nbsp; Más antiguo →</span><span>Total mostrado: <b id="shown">0</b></span></div>
+</section>
+
+<section class="panel">
+ <div class="actions">
+  <button class="action" onclick="undo()">↩️ DESHACER</button>
+  <button class="action" onclick="save()">💾 GUARDAR</button>
+  <button class="action export" onclick="exportCSV()">⇧ EXPORTAR CSV</button>
+  <button class="action danger" onclick="clearAll()">♜ BORRAR</button>
+ </div>
+</section>
+
+<div class="bottom">
+ <section class="panel">
+  <div class="title">◷ ÚLTIMAS RONDAS</div>
+  <div id="recent" class="list" style="margin-top:10px"></div>
+ </section>
+ <section class="panel">
+  <div class="title">◔ PORCENTAJES</div>
+  <div class="list" style="margin-top:10px">
+   <div class="row"><span class="dot bh"></span>Local <span class="pct" id="pL">0.0%</span></div>
+   <div class="row"><span class="dot ba"></span>Visitante <span class="pct" id="pV">0.0%</span></div>
+   <div class="row"><span class="dot bd"></span>Empate <span class="pct" id="pE">0.0%</span></div>
+  </div>
+ </section>
+</div>
+
+<div class="footer"><span>Football Studio Catalogador | Uso personal y educativo</span><span>No afiliado a Evolution Gaming</span></div>
+</div>
+
+<script>
+const KEY='footballStudioCatalog_v3';
+let results=[];
+try{results=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){results=[]}
+const name=r=>r==='L'?'Local':r==='V'?'Visitante':'Empate';
+const cls=r=>r==='L'?'bh':r==='V'?'ba':'bd';
+
+function persist(){localStorage.setItem(KEY,JSON.stringify(results))}
+function add(r){results.push(r);persist();render()}
+function undo(){if(results.length){results.pop();persist();render()}}
+function clearAll(){if(confirm('¿Borrar todo el historial?')){results=[];persist();render()}}
+function wait(r){
+ let n=0;
+ for(let i=results.length-1;i>=0;i--){if(results[i]===r)return n;n++}
+ return results.length;
+}
+function render(){
+ const t=results.length, l=results.filter(x=>x==='L').length, v=results.filter(x=>x==='V').length, e=results.filter(x=>x==='E').length;
+ const pct=x=>t?(x/t*100).toFixed(1)+'%':'0.0%';
+ document.getElementById('total').textContent=t;
+ document.getElementById('localCount').textContent=l; document.getElementById('visitCount').textContent=v; document.getElementById('drawCount').textContent=e;
+ document.getElementById('localPct').textContent=pct(l); document.getElementById('visitPct').textContent=pct(v); document.getElementById('drawPct').textContent=pct(e);
+ document.getElementById('pL').textContent=pct(l);document.getElementById('pV').textContent=pct(v);document.getElementById('pE').textContent=pct(e);
+ const last=results.at(-1); let s=0;if(last)for(let i=t-1;i>=0&&results[i]===last;i--)s++;
+ document.getElementById('streak').textContent=last?`${name(last)} ×${s}`:'-';
+ document.getElementById('last').textContent=last?name(last):'-';
+ document.getElementById('waitL').textContent=wait('L');document.getElementById('waitV').textContent=wait('V');document.getElementById('waitE').textContent=wait('E');
+ let alt=0;if(t>1)for(let i=t-1;i>0&&results[i]!==results[i-1];i--)alt++;
+ document.getElementById('alternation').textContent=t>1?alt:'-';
+
+ // Último resultado a la izquierda, como el gráfico solicitado.
+ const shown=results.slice(-200).reverse();
+ document.getElementById('history').innerHTML=shown.map(r=>`<span class="ball ${cls(r)}" title="${name(r)}"></span>`).join('');
+ document.getElementById('shown').textContent=shown.length;
+
+ const recent=results.slice(-5).reverse();
+ document.getElementById('recent').innerHTML=recent.length?recent.map((r,i)=>`<div class="row"><span>${i+1}</span><span class="dot ${cls(r)}"></span>${name(r)}</div>`).join(''):'<div class="row">Aún no hay resultados.</div>';
+}
+function save(){persist();alert('Datos guardados en este dispositivo.')}
+function exportCSV(){
+ if(!results.length){alert('No hay resultados.');return}
+ let csv='N°,Resultado\\n';results.forEach((r,i)=>csv+=`${i+1},${name(r)}\\n`);
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='football_studio_resultados.csv';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
+render();
+</script>
+</body>
+</html>
