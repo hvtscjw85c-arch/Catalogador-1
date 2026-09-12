@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d1424">
+<title>Football Studio Catalogador</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0d1424;color:#f7f8fb;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+.app{max-width:1000px;margin:auto;padding:16px 16px 35px}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.menu,.gear{font-size:30px;color:#d9dee8;width:42px;text-align:center}
+.brand{text-align:center;flex:1}
+.brand .football{font-size:44px;vertical-align:middle}
+.brand h1{display:inline-block;font-size:28px;margin:0 0 4px;font-weight:800}
+.brand p{margin:0;color:#aab2c2;font-size:18px}
+.buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:25px 0}
+.result{border:0;border-radius:22px;height:125px;color:#fff;font-size:26px;font-weight:800;box-shadow:0 5px 0 rgba(0,0,0,.2);cursor:pointer}
+.result:active{transform:translateY(2px)}
+.home{background:#e5232a}.away{background:#2864e6}.draw{background:#13a653}
+.panel{background:#1c2739;border-radius:25px;padding:16px;margin:14px 0}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.card{background:#0f1728;border-radius:18px;text-align:center;padding:17px 8px}
+.num{font-size:31px;font-weight:800}.label{font-size:16px;color:#aeb6c5;margin-top:6px}
+.red{color:#ff3038}.blue{color:#3b82ff}.green{color:#12e866}
+.waits .num{font-size:27px}
+.sectionTitle{font-size:21px;font-weight:800;margin:5px 0 15px}
+.last{font-size:18px;color:#aeb6c5;text-align:center;margin:8px}
+.history{display:grid;grid-template-columns:repeat(10,1fr);gap:7px}
+.ball{height:42px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+.bh{background:#e5232a}.ba{background:#2864e6}.bd{background:#13a653}
+.actions{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.action{border:0;border-radius:18px;background:#354258;color:#fff;padding:15px 8px;font-size:16px;font-weight:700;cursor:pointer}
+.action.danger{background:#8d2023}
+.footer{display:flex;justify-content:space-between;color:#758198;font-size:13px;margin-top:18px}
+@media(max-width:600px){
+ .app{padding:14px 14px 28px}
+ .brand .football{font-size:38px}.brand h1{font-size:25px}.brand p{font-size:16px}
+ .result{height:105px;font-size:23px;border-radius:20px}
+ .buttons{gap:10px;margin:22px 0}
+ .panel{border-radius:23px;padding:14px}
+ .grid3{gap:10px}.card{padding:14px 5px}.num{font-size:28px}.label{font-size:14px}
+ .grid4{grid-template-columns:repeat(3,1fr)}
+ .history{grid-template-columns:repeat(8,1fr)}
+ .actions{grid-template-columns:repeat(3,1fr)}
+ .action{font-size:14px}
+ .footer{font-size:11px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="menu">☰</div>
+    <div class="brand">
+      <div><span class="football">⚽</span> <h1>Football Studio</h1></div>
+      <p>CATALOGADOR</p>
+    </div>
+    <div class="gear">⚙️</div>
+  </div>
+
+  <div class="buttons">
+    <button class="result home" onclick="addResult('H')">⚽<br>HOME</button>
+    <button class="result away" onclick="addResult('A')">⚽<br>AWAY</button>
+    <button class="result draw" onclick="addResult('D')">🤝<br>DRAW</button>
+  </div>
+
+  <div class="panel">
+    <div class="grid3">
+      <div class="card"><div class="num" id="total">0</div><div class="label">TOTAL</div></div>
+      <div class="card"><div class="num red" id="homeCount">0</div><div class="label">HOME</div></div>
+      <div class="card"><div class="num blue" id="awayCount">0</div><div class="label">AWAY</div></div>
+    </div>
+    <div class="grid3" style="margin-top:10px">
+      <div class="card"><div class="num green" id="drawCount">0</div><div class="label">DRAW</div></div>
+      <div class="card"><div class="num" id="streak">-</div><div class="label">RACHA ACTUAL</div></div>
+      <div class="card"><div class="num" id="last">-</div><div class="label">ÚLTIMO RESULTADO</div></div>
+    </div>
+  </div>
+
+  <div class="panel waits">
+    <div class="grid4">
+      <div class="card"><div class="num red" id="waitH">0</div><div class="label">ESPERA HOME</div></div>
+      <div class="card"><div class="num blue" id="waitA">0</div><div class="label">ESPERA AWAY</div></div>
+      <div class="card"><div class="num green" id="waitD">0</div><div class="label">ESPERA DRAW</div></div>
+      <div class="card"><div class="num" id="alternation">-</div><div class="label">ALTERNANCIA</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="sectionTitle">🕘 HISTORIAL DE RESULTADOS</div>
+    <div id="history" class="history"></div>
+    <div id="empty" class="last">Aún no hay resultados.</div>
+  </div>
+
+  <div class="panel">
+    <div class="actions">
+      <button class="action" onclick="undo()">↩️ Deshacer</button>
+      <button class="action" onclick="saveData()">💾 Guardar</button>
+      <button class="action" onclick="exportCSV()">📤 Exportar</button>
+      <button class="action" onclick="showStats()">📊 Estadísticas</button>
+      <button class="action danger" onclick="clearAll()">🗑️ Borrar</button>
+    </div>
+  </div>
+
+  <div class="panel" id="statsPanel" style="display:none">
+    <div class="sectionTitle">📊 PORCENTAJES</div>
+    <div id="stats"></div>
+  </div>
+
+  <div class="footer">
+    <span>Catalogador Football Studio</span>
+    <span>Uso personal</span>
+  </div>
+</div>
+
+<script>
+const KEY='footballStudioCatalog_v2';
+let results=[];
+try{results=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){results=[]}
+
+function save(){localStorage.setItem(KEY,JSON.stringify(results))}
+function addResult(r){results.push(r);save();render()}
+function undo(){if(results.length){results.pop();save();render()}}
+function clearAll(){
+ if(confirm('¿Borrar todo el historial?')){
+  results=[];save();render();
+ }
+}
+function label(r){return r==='H'?'H':r==='A'?'A':'D'}
+function full(r){return r==='H'?'HOME':r==='A'?'AWAY':'DRAW'}
+function cls(r){return r==='H'?'bh':r==='A'?'ba':'bd'}
+
+function waitFor(target){
+ if(!results.length)return 0;
+ let n=0;
+ for(let i=results.length-1;i>=0;i--){
+   if(results[i]===target)return n;
+   n++;
+ }
+ return results.length;
+}
+
+function render(){
+ const h=results.filter(x=>x==='H').length;
+ const a=results.filter(x=>x==='A').length;
+ const d=results.filter(x=>x==='D').length;
+ document.getElementById('total').textContent=results.length;
+ document.getElementById('homeCount').textContent=h;
+ document.getElementById('awayCount').textContent=a;
+ document.getElementById('drawCount').textContent=d;
+
+ const last=results.at(-1);
+ let streak=0;
+ if(last)for(let i=results.length-1;i>=0&&results[i]===last;i--)streak++;
+ document.getElementById('streak').textContent=last?`${label(last)} ×${streak}`:'-';
+ document.getElementById('last').textContent=last?full(last):'-';
+
+ document.getElementById('waitH').textContent=waitFor('H');
+ document.getElementById('waitA').textContent=waitFor('A');
+ document.getElementById('waitD').textContent=waitFor('D');
+
+ let alt=0;
+ if(results.length>=2){
+   for(let i=results.length-1;i>0;i--){
+     if(results[i]!==results[i-1])alt++;else break;
+   }
+ }
+ document.getElementById('alternation').textContent=results.length>=2?alt:'-';
+
+ const hist=document.getElementById('history');
+ hist.innerHTML=results.slice(-80).map(r=>`<div class="ball ${cls(r)}">${label(r)}</div>`).join('');
+ document.getElementById('empty').style.display=results.length?'none':'block';
+
+ if(document.getElementById('statsPanel').style.display!=='none')renderStats();
+}
+
+function renderStats(){
+ const t=results.length||1;
+ document.getElementById('stats').innerHTML=`
+ <div style="display:grid;gap:8px">
+ <div>🔴 HOME: <b>${(results.filter(x=>x==='H').length/t*100).toFixed(1)}%</b></div>
+ <div>🔵 AWAY: <b>${(results.filter(x=>x==='A').length/t*100).toFixed(1)}%</b></div>
+ <div>🟢 DRAW: <b>${(results.filter(x=>x==='D').length/t*100).toFixed(1)}%</b></div>
+ </div>`;
+}
+function showStats(){
+ const p=document.getElementById('statsPanel');
+ p.style.display=p.style.display==='none'?'block':'none';
+ if(p.style.display==='block')renderStats();
+}
+function saveData(){save();alert('Datos guardados en este dispositivo.')}
+function exportCSV(){
+ if(!results.length){alert('No hay resultados.');return}
+ let csv='N°,Resultado\\n';
+ results.forEach((r,i)=>csv+=`${i+1},${full(r)}\\n`);
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');a.href=url;a.download='football_studio_resultados.csv';
+ document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
+render();
+</script>
+</body>
+</html>
