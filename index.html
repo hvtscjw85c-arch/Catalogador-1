@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Football Studio - Catalogador</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#111827;color:#f9fafb;padding:18px}
+  .app{max-width:700px;margin:auto}
+  h1{text-align:center;font-size:26px;margin:8px 0 4px}
+  .sub{text-align:center;color:#9ca3af;margin-bottom:18px}
+  .buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  button{border:0;border-radius:14px;padding:18px 8px;font-size:20px;font-weight:700;color:white;cursor:pointer}
+  button:active{transform:scale(.97)}
+  .home{background:#dc2626}.away{background:#2563eb}.draw{background:#16a34a}
+  .panel{background:#1f2937;border-radius:16px;padding:15px;margin-top:14px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+  .box{background:#111827;border-radius:12px;padding:12px 5px}
+  .num{font-size:24px;font-weight:800}.label{font-size:12px;color:#9ca3af;margin-top:3px}
+  .history{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .ball{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px}
+  .bh{background:#dc2626}.ba{background:#2563eb}.bd{background:#16a34a}
+  .actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .secondary{background:#374151;font-size:14px;padding:12px}
+  .danger{background:#7f1d1d;font-size:14px;padding:12px}
+  .wait{font-size:18px;text-align:center;margin-top:8px}
+  .empty{color:#9ca3af;text-align:center;padding:15px}
+</style>
+</head>
+<body>
+<div class="app">
+<h1>⚽ Football Studio</h1>
+<div class="sub">Catalogador personal de resultados</div>
+
+<div class="buttons">
+  <button class="home" onclick="addResult('H')">HOME</button>
+  <button class="away" onclick="addResult('A')">AWAY</button>
+  <button class="draw" onclick="addResult('D')">DRAW</button>
+</div>
+
+<div class="panel">
+  <div class="grid">
+    <div class="box"><div class="num" id="homeCount">0</div><div class="label">HOME</div></div>
+    <div class="box"><div class="num" id="awayCount">0</div><div class="label">AWAY</div></div>
+    <div class="box"><div class="num" id="drawCount">0</div><div class="label">DRAW</div></div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="grid">
+    <div class="box"><div class="num" id="total">0</div><div class="label">TOTAL</div></div>
+    <div class="box"><div class="num" id="streak">-</div><div class="label">RACHA</div></div>
+    <div class="box"><div class="num" id="wait">0</div><div class="label">ESPERA</div></div>
+  </div>
+  <div class="wait" id="waitText">Sin resultados todavía</div>
+</div>
+
+<div class="panel">
+  <strong>Últimos resultados</strong>
+  <div id="history" class="history"><div class="empty">Todavía no hay resultados</div></div>
+</div>
+
+<div class="panel">
+  <div class="actions">
+    <button class="secondary" onclick="undo()">↩️ Deshacer</button>
+    <button class="secondary" onclick="exportCSV()">📤 CSV</button>
+    <button class="danger" onclick="clearAll()">🗑️ Borrar</button>
+  </div>
+</div>
+</div>
+
+<script>
+const KEY='footballStudioCatalog_v1';
+let results=[];
+
+try{ results=JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){results=[];}
+
+function save(){localStorage.setItem(KEY,JSON.stringify(results));}
+
+function addResult(r){
+  results.push(r);
+  save();
+  render();
+}
+
+function undo(){
+  if(!results.length)return;
+  results.pop();
+  save();
+  render();
+}
+
+function clearAll(){
+  if(confirm('¿Borrar todo el historial?')){
+    results=[];
+    save();
+    render();
+  }
+}
+
+function render(){
+  const h=results.filter(x=>x==='H').length;
+  const a=results.filter(x=>x==='A').length;
+  const d=results.filter(x=>x==='D').length;
+  document.getElementById('homeCount').textContent=h;
+  document.getElementById('awayCount').textContent=a;
+  document.getElementById('drawCount').textContent=d;
+  document.getElementById('total').textContent=results.length;
+
+  let last=results[results.length-1];
+  let n=0;
+  if(last){for(let i=results.length-1;i>=0 && results[i]===last;i--)n++;}
+  document.getElementById('streak').textContent=last ? last+n*0+n : '-';
+
+  let wait=0;
+  if(last && last!=='D'){
+    for(let i=results.length-1;i>=0 && results[i]!==last;i--)wait++;
+  }
+  document.getElementById('wait').textContent=wait;
+  document.getElementById('waitText').textContent =
+    last ? `Último: ${name(last)} · Racha: ${n} ${name(last)}` : 'Sin resultados todavía';
+
+  const hist=document.getElementById('history');
+  if(!results.length){hist.innerHTML='<div class="empty">Todavía no hay resultados</div>';return;}
+  hist.innerHTML=results.slice(-50).reverse().map((r,i)=>
+    `<div class="ball ${cls(r)}">${name(r)}</div>`).join('');
+}
+
+function name(r){return r==='H'?'H':r==='A'?'A':'D';}
+function cls(r){return r==='H'?'bh':r==='A'?'ba':'bd';}
+
+function exportCSV(){
+  if(!results.length){alert('No hay resultados para exportar.');return;}
+  let csv='N°,Resultado\\n';
+  results.forEach((r,i)=>csv+=`${i+1},${name(r)}\\n`);
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='football_studio_resultados.csv';a.click();
+  URL.revokeObjectURL(url);
+}
+
+render();
+</script>
+</body>
+</html>
