@@ -56,6 +56,15 @@ body{margin:0;background:radial-gradient(circle at 50% 0,#10233a 0,#050c18 38%,#
  .historyInfo{font-size:12px}.actions{grid-template-columns:repeat(4,1fr);gap:7px}.action{font-size:12px;padding:12px 3px}
  .bottom{grid-template-columns:1fr}.footer{font-size:10px}
 }
+
+<style>
+#aiPanel .pattern{background:#07111f;border:1px solid #19334b;border-radius:14px;padding:11px;margin:8px 0}
+#aiPanel .patternHead{display:flex;justify-content:space-between;gap:8px;align-items:center}
+#aiPanel .match{font-size:13px;color:#91a8c0;margin-top:5px}
+#aiPanel .bars{display:flex;height:9px;border-radius:9px;overflow:hidden;margin-top:8px;background:#101c2a}
+#aiPanel .bars span{display:block}
+.aiNote{font-size:12px;color:#8298ad;line-height:1.35;margin-top:10px}
+</style>
 </style>
 </head>
 <body>
@@ -131,6 +140,16 @@ body{margin:0;background:radial-gradient(circle at 50% 0,#10233a 0,#050c18 38%,#
  </section>
 </div>
 
+
+<section class="panel" id="aiPanel">
+ <div class="titleRow">
+  <div class="title">🧠 ANÁLISIS DE FORMACIONES</div>
+  <button class="clearSmall" onclick="analyze()">ACTUALIZAR</button>
+ </div>
+ <div id="aiContent"></div>
+ <div class="aiNote">El análisis busca estructuras en tu historial y compara estadísticamente lo que ocurrió después. No representa una predicción garantizada del próximo resultado.</div>
+</section>
+
 <div class="footer"><span>Football Studio Catalogador | Uso personal y educativo</span><span>No afiliado a Evolution Gaming</span></div>
 </div>
 
@@ -179,6 +198,82 @@ function exportCSV(){
  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
  a.href=url;a.download='football_studio_resultados.csv';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
 }
+
+const patterns=[
+ {name:'Hombro – Corona – Hombro',seq:'AABABAA',literal:'🔴🔴🔵🔴🔵🔴🔴'},
+ {name:'Hombro – Cabeza – Hombro',seq:'AABBB AA'.replace(' ',''),literal:'🔴🔴🔵🔵🔵🔴🔴'},
+ {name:'3×2×1×3',seq:'AAABBABBB',literal:'🔵🔵🔵🔴🔴🔵🔴🔴🔴'},
+ {name:'2×1',seq:'AABAABAA',literal:'🔵🔵🔴🔵🔵🔴🔵🔵'},
+ {name:'3×1',seq:'ABBB',literal:'🔵🔴🔴🔴'},
+ {name:'4×1',seq:'ABBBB',literal:'🔵🔴🔴🔴🔴'},
+ {name:'2×1 invertido',seq:'ABBAAB',literal:'🔵🔴🔴🔵🔵🔴'},
+ {name:'2×1 – 1×2',seq:'AABABB',literal:'🔴🔴🔵🔴🔵🔵'},
+ {name:'3×1 – 1×3',seq:'AAABABBB',literal:'🔴🔴🔴🔵🔴🔵🔵🔵'}
+];
+
+function shape(arr){
+ if(!arr.length)return '';
+ const out=[];let last=arr[0],n=1;
+ for(let i=1;i<arr.length;i++){if(arr[i]===last)n++;else{out.push(n);last=arr[i];n=1}}
+ out.push(n);return out.join('-');
+}
+function isPattern(window,pat){
+ const vals=window.map(x=>x);
+ const first=vals[0], second=vals.find(x=>x!==first);
+ if(second===undefined)return false;
+ return pat.seq.split('').every((c,i)=>c==='A'?vals[i]===first:vals[i]===second);
+}
+function patternMatches(pat){
+ const len=pat.seq.length, out=[];
+ for(let i=0;i<=results.length-len;i++){
+   const w=results.slice(i,i+len);
+   if(isPattern(w,pat))out.push(i);
+ }
+ return out;
+}
+function outcomeStats(indices){
+ const counts={L:0,V:0,E:0,total:0};
+ indices.forEach(i=>{
+   const next=results[i+1];
+   if(next){counts[next]++;counts.total++}
+ });
+ return counts;
+}
+function analyze(){
+ const box=document.getElementById('aiContent');
+ if(!box)return;
+ if(results.length<4){box.innerHTML='<div class="match">Cargá algunas rondas para empezar a detectar formaciones.</div>';return}
+ const found=[];
+ patterns.forEach(p=>{
+   const idx=patternMatches(p);
+   if(idx.length){
+     const st=outcomeStats(idx);
+     found.push({p,idx,st});
+   }
+ });
+ // Detectar onda: 5 o más iguales.
+ let waves=[];
+ for(let i=0;i<results.length;){
+   let j=i+1;while(j<results.length&&results[j]===results[i])j++;
+   if(j-i>=5)waves.push({r:results[i],len:j-i,start:i});
+   i=j;
+ }
+ if(waves.length)found.push({p:{name:'🌊 Onda (5+)',seq:''},idx:waves.map(x=>x.start),st:outcomeStats(waves.map(x=>x.start+x.len-1)),waves});
+
+ found.sort((a,b)=>b.idx.length-a.idx.length);
+ if(!found.length){box.innerHTML='<div class="match">Todavía no se detectaron formaciones de tu biblioteca en el historial.</div>';return}
+ box.innerHTML=found.slice(0,8).map(item=>{
+   const total=item.st.total||0, l=item.st.L||0,v=item.st.V||0,e=item.st.E||0;
+   const lp=total?l/total*100:0,vp=total?v/total*100:0,ep=total?e/total*100:0;
+   const extra=item.waves?` · Onda máxima: ${Math.max(...item.waves.map(x=>x.len))}`:'';
+   return `<div class="pattern">
+    <div class="patternHead"><b>${item.p.name}</b><b>${item.idx.length} coincidencia${item.idx.length===1?'':'s'}</b></div>
+    <div class="match">Después de la formación${extra}: 🔴 ${l} (${lp.toFixed(1)}%) · 🔵 ${v} (${vp.toFixed(1)}%) · 🟢 ${e} (${ep.toFixed(1)}%)</div>
+    <div class="bars"><span style="width:${lp}%;background:var(--red)"></span><span style="width:${vp}%;background:var(--blue)"></span><span style="width:${ep}%;background:var(--green)"></span></div>
+   </div>`
+ }).join('');
+}
+
 render();
 </script>
 </body>
